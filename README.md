@@ -54,7 +54,7 @@ TaskFlow/
 ├── .gitignore
 ├── package.json
 ├── README.md
-├── setup-db.js           # cria as coleções
+├── seed.js           # cria as coleções e insere dados de exemplo
 └── server.js         # ponto de entrada da API
 ```
 
@@ -105,7 +105,7 @@ Banco: `gerenciador_tarefas`
 
 - [Node.js](https://nodejs.org) (versão LTS)
 - [Git](https://git-scm.com)
-- Acesso ao cluster do MongoDB Atlas
+- Acesso ao cluster do MongoDB Atlas (peça os dados de conexão ao grupo)
 
 ### Passo a passo
 
@@ -129,7 +129,17 @@ Banco: `gerenciador_tarefas`
    PORT=3000
    ```
 
-4. **Inicie o servidor**
+   > ⚠️ Nunca envie o `.env` para o GitHub. Os dados reais devem ser compartilhados apenas por mensagem privada.
+
+4. **(Opcional) Popule o banco com dados de exemplo**
+
+   ```bash
+   node seed.js
+   ```
+
+   > Atenção: este script apaga os dados existentes antes de inserir os exemplos.
+
+5. **Inicie o servidor**
    ```bash
    npx nodemon server.js
    ```
