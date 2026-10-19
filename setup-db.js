@@ -13,7 +13,7 @@ async function setup_db() {
     await Usuario.createCollection();
     await Projeto.createCollection();
     await Tarefa.createCollection();
-    await Usuario.syncIndexes();
+    await Usuario.createIndexes();
     console.log("Coleções criadas: usuarios, projetos, tarefas");
   } catch (err) {
     console.error("Erro:", err.message);
