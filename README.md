@@ -45,7 +45,7 @@ Bibliotecas auxiliares: `cors`, `dotenv`, `bcrypt` e `nodemon` (desenvolvimento)
 ## Estrutura do projeto
 
 ```
-taskflow/
+TaskFlow/
 ├── models/
 │   ├── Projeto.js
 │   ├── Tarefa.js
@@ -54,7 +54,7 @@ taskflow/
 ├── .gitignore
 ├── package.json
 ├── README.md
-├── seed.js           # cria as coleções e insere dados de exemplo
+├── seed.js           # cria as coleções
 └── server.js         # ponto de entrada da API
 ```
 
@@ -112,8 +112,8 @@ Banco: `gerenciador_tarefas`
 1. **Clone o repositório**
 
    ```bash
-   git clone https://github.com/Tensei-dev/taskflow.git
-   cd taskflow
+   git clone https://github.com/Tensei-dev/TaskFlow.git
+   cd TaskFlow
    ```
 
 2. **Instale as dependências**
