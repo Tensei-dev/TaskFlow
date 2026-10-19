@@ -50,12 +50,15 @@ TaskFlow/
 │   ├── Projeto.js
 │   ├── Tarefa.js
 │   └── Usuario.js
-├── .env              # variáveis de ambiente (não versionado)
+├── services/
+│   └── taskflowService.js   # operações no banco (CRUD, Kanban, filtros e dashboard)
+├── .env                     # variáveis de ambiente (não versionado)
 ├── .gitignore
+├── package-lock.json
 ├── package.json
 ├── README.md
-├── server.js         # ponto de entrada da API
-└── setup-db.js       # cria as coleções do banco, caso não existam
+├── server.js                # ponto de entrada da API
+└── setup-db.js              # cria as coleções do banco, caso não existam
 ```
 
 ---
@@ -99,6 +102,26 @@ Banco: `gerenciador_tarefas`
 
 ---
 
+## Operações no banco
+
+As funções em `services/taskflowService.js` executam todas as operações no MongoDB. As rotas do Express apenas chamam essas funções.
+
+| Funcionalidade | Funções                                                                                                        |
+| -------------- | -------------------------------------------------------------------------------------------------------------- |
+| Projetos       | `criarProjeto`, `listarProjetos`, `buscarProjetoPorId`, `editarProjeto`, `excluirProjeto`                      |
+| Tarefas        | `criarTarefa`, `listarTarefasDoProjeto`, `buscarTarefaPorId`, `editarTarefa`, `alterarStatus`, `excluirTarefa` |
+| Quadro Kanban  | `obterKanban` — tarefas de um projeto separadas por status                                                     |
+| Filtros        | `filtrarTarefas` — por nome, prioridade, status, prazo e projeto (combináveis)                                 |
+| Dashboard      | `obterDashboard` — total, pendentes, em andamento, concluídas e atrasadas                                      |
+
+Observações:
+
+- Excluir um projeto também exclui todas as tarefas dele.
+- Uma tarefa só pode ser criada em um projeto existente.
+- Os erros retornam um código HTTP (`400` para dados inválidos, `404` para registro não encontrado).
+
+---
+
 ## Como rodar o projeto
 
 ### Pré-requisitos
@@ -135,7 +158,7 @@ Banco: `gerenciador_tarefas`
    node setup-db.js
    ```
 
-   O script cria as coleções `usuarios`, `projetos` e `tarefas` (e o índice único de e-mail) somente se ainda não existirem
+   O script cria as coleções `usuarios`, `projetos` e `tarefas` (e o índice único de e-mail) somente se ainda não existirem.
 
 5. **Inicie o servidor**
    ```bash
