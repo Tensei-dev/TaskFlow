@@ -54,7 +54,7 @@ TaskFlow/
 ├── .gitignore
 ├── package.json
 ├── README.md
-├── seed.js           # cria as coleções
+├── setup-db.js           # cria as coleções
 └── server.js         # ponto de entrada da API
 ```
 

@@ -1,12 +1,11 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
 
 const Projeto = require("./models/Projeto");
 const Tarefa = require("./models/Tarefa");
 const Usuario = require("./models/Usuario");
 
-async function seed() {
+async function setup_db() {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("Conectado ao MongoDB Atlas");
@@ -23,4 +22,4 @@ async function seed() {
   }
 }
 
-seed();
+setup_db();
