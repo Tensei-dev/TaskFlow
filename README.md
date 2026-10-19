@@ -54,8 +54,8 @@ TaskFlow/
 ├── .gitignore
 ├── package.json
 ├── README.md
-├── seed.js           # cria as coleções e insere dados de exemplo
-└── server.js         # ponto de entrada da API
+├── server.js         # ponto de entrada da API
+└── setup-db.js       # cria as coleções do banco, caso não existam
 ```
 
 ---
@@ -129,15 +129,13 @@ Banco: `gerenciador_tarefas`
    PORT=3000
    ```
 
-   > ⚠️ Nunca envie o `.env` para o GitHub. Os dados reais devem ser compartilhados apenas por mensagem privada.
-
-4. **(Opcional) Popule o banco com dados de exemplo**
+4. **Prepare o banco de dados**
 
    ```bash
-   node seed.js
+   node setup-db.js
    ```
 
-   > Atenção: este script apaga os dados existentes antes de inserir os exemplos.
+   O script cria as coleções `usuarios`, `projetos` e `tarefas` (e o índice único de e-mail) somente se ainda não existirem
 
 5. **Inicie o servidor**
    ```bash
