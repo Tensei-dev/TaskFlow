@@ -10,11 +10,22 @@ async function setup_db() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("Conectado ao MongoDB Atlas");
 
-    await Usuario.createCollection();
-    await Projeto.createCollection();
-    await Tarefa.createCollection();
+    const existentes = (
+      await mongoose.connection.db.listCollections().toArray()
+    ).map((c) => c.name);
+
+    for (const Model of [Usuario, Projeto, Tarefa]) {
+      const nome = Model.collection.collectionName;
+      if (existentes.includes(nome)) {
+        console.log(`Coleção "${nome}" já existe`);
+      } else {
+        await Model.createCollection();
+        console.log(`Coleção "${nome}" criada`);
+      }
+    }
+
     await Usuario.createIndexes();
-    console.log("Coleções criadas: usuarios, projetos, tarefas");
+    console.log("Pronto!");
   } catch (err) {
     console.error("Erro:", err.message);
   } finally {
