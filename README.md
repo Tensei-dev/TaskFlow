@@ -14,7 +14,7 @@ Projeto desenvolvido para a disciplina de **Desenvolvimento Web I** — Universi
 - Calendário mensal, comentários e alertas de tarefas atrasadas.
 - Layout responsivo e navegação acessível por teclado.
 
-Nesta entrega, o frontend usa dados de demonstração salvos no `localStorage` do navegador, sob a chave `taskflow.workspace.v1`. A estrutura de banco permanece no repositório para a etapa de integração com a API.
+Quando o MongoDB está configurado, o frontend carrega e salva projetos, tarefas, comentários e mudanças do Kanban pela API REST. Se o banco estiver indisponível, a interface continua funcional e mantém os dados no `localStorage`, sob a chave `taskflow.workspace.v1`.
 
 ## Tecnologias
 
@@ -68,6 +68,28 @@ npm run dev       # servidor com reinício automático
 npm run setup-db  # prepara as coleções do banco
 npm run check     # verifica a sintaxe do JavaScript
 ```
+
+## API REST
+
+| Método | Endpoint | Operação |
+| --- | --- | --- |
+| `GET` / `POST` | `/api/projetos` | Listar e criar projetos |
+| `GET` / `PUT` / `DELETE` | `/api/projetos/:id` | Consultar, editar e excluir um projeto |
+| `GET` | `/api/projetos/:id/tarefas` | Listar tarefas de um projeto |
+| `GET` | `/api/projetos/:id/kanban` | Obter as colunas do Kanban |
+| `GET` / `POST` | `/api/tarefas` | Filtrar/listar e criar tarefas |
+| `GET` / `PUT` / `DELETE` | `/api/tarefas/:id` | Consultar, editar e excluir uma tarefa |
+| `PATCH` | `/api/tarefas/:id/status` | Alterar o status de uma tarefa |
+| `GET` | `/api/dashboard` | Obter os totais do dashboard |
+
+`GET /api` informa se o servidor está online e se o MongoDB está conectado. Na primeira execução com um banco vazio, os dados iniciais exibidos pela interface são cadastrados automaticamente no MongoDB.
+
+## Verificação para entrega
+
+1. Configure `.env` caso a demonstração utilize o MongoDB.
+2. Execute `npm install` e `npm run check`.
+3. Inicie com `npm start`.
+4. Acesse `http://localhost:3000` e teste criação, edição, exclusão, filtros e movimentação no Kanban.
 
 ## Equipe
 
