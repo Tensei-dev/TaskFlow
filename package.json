@@ -1,14 +1,25 @@
 {
-  "name": "gerenciador-de-atividades",
+  "name": "taskflow",
   "version": "1.0.0",
-  "description": "",
-  "main": "projeto.js",
+  "private": true,
+  "description": "Sistema web de gerenciamento de projetos e tarefas com quadro Kanban.",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "setup-db": "node setup-db.js",
+    "check": "node --check server.js && node --check setup-db.js && node --check services/taskflowService.js && node --check public/app.js"
   },
-  "keywords": [],
+  "keywords": [
+    "taskflow",
+    "tarefas",
+    "kanban"
+  ],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
