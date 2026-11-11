@@ -183,6 +183,9 @@ Ou use o terminal **Command Prompt** (cmd) no lugar do PowerShell.
 | Nome               | GitHub                                       |
 | ------------------ | -------------------------------------------- |
 | Rodrigo Lemes Zago | [@Tensei-dev](https://github.com/Tensei-dev) |
+| Adriano Robson Pereira Junior | [@Adrian2Aaron](https://github.com/Adrian2Aaron) |
+| Pedro Guagneli Furlan | [@Furl4n](https://github.com/Furl4n) |
+| Pedro Maximiano Silva | [@PedroMaximiano20](https://github.com/PedroMaximiano20) |
 
 ---
 
