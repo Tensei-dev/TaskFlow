@@ -29,7 +29,7 @@ const normalized = (value) => String(value).normalize('NFD').replace(/[\u0300-\u
 
 function demoData() {
   const projects = [
-    { id: 'website', name: 'Website institucional', description: 'Um novo espaço digital para conectar ideias.', color: 'purple', createdAt: relativeDate(-14) },
+    { id: 'website', name: 'Website institucional', description: '', color: 'purple', createdAt: relativeDate(-14) },
     { id: 'app', name: 'Aplicativo mobile', description: 'Uma experiência simples, na palma da mão.', color: 'blue', createdAt: relativeDate(-10) },
     { id: 'marketing', name: 'Campanha de marketing', description: 'Boas histórias merecem chegar mais longe.', color: 'orange', createdAt: relativeDate(-7) },
   ];
@@ -75,7 +75,14 @@ function loadData() {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const value = JSON.parse(saved);
-      if (validStoredData(value)) return value;
+      if (validStoredData(value)) {
+        for (const project of value.projects) {
+          if (project.name === 'Website institucional' && project.description === 'Um novo espaço digital para conectar ideias.') {
+            project.description = '';
+          }
+        }
+        return value;
+      }
       storageWarning = 'Os dados salvos não puderam ser lidos. Carregamos o exemplo inicial.';
     }
   } catch {
