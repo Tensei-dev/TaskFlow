@@ -79,11 +79,6 @@ h1, h2, h3, .brand { font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 
 .brand-mark { display: grid; grid-template-columns: repeat(2, 9px); grid-template-rows: repeat(2, 9px); gap: 3px; transform: rotate(-6deg); margin: 2px 1px 0 0; }
 .brand-mark i { border-radius: 2.4px; background: var(--accent); }
 .brand-mark i:nth-child(2), .brand-mark i:nth-child(3) { opacity: .6; }
-.workspace-card { display: flex; align-items: center; gap: 10px; padding: 12px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 9px; margin-bottom: 31px; }
-.workspace-icon { background: var(--accent-soft); color: var(--accent); width: 33px; height: 35px; border: 1px solid var(--accent-border); display: grid; place-items: center; border-radius: 7px; font-weight: 700; font-size: 16px; }
-.workspace-card strong { display: block; font-size: 12px; font-weight: 650; }
-.workspace-card div > span { display: block; margin-top: 3px; font-size: 10px; color: var(--muted); }
-.workspace-card > .icon { width: 14px; margin-left: auto; color: var(--muted); }
 .nav-label { font-size: 9px; font-weight: 700; letter-spacing: 1.45px; color: var(--muted); padding: 0 13px; }
 .main-nav { display: grid; gap: 5px; margin-top: 13px; }
 .nav-item { display: flex; align-items: center; gap: 11px; min-height: 43px; padding: 0 13px; color: var(--muted); font-size: 13px; font-weight: 500; border-radius: 7px; }
@@ -198,6 +193,12 @@ h1 { font-size: 27px; font-weight: 800; letter-spacing: -.9px; }
 .board-search .icon { width: 14px; height: 14px; }
 .board-search input { width: 100%; padding: 5px 0; font-size: 9px; color: var(--text); border: 0; background: none; outline-offset: 1px; }
 .board-search input::placeholder { color: var(--muted); }
+.global-search, .board-search { transition: background .18s, border-color .18s, box-shadow .18s; }
+.global-search { border-radius: 6px; }
+.global-search:focus-within { background: var(--surface-muted); outline: 1px solid var(--accent); outline-offset: 5px; box-shadow: 0 0 0 9px var(--accent-soft); }
+.board-search:focus-within { border-color: var(--accent); background: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+.global-search:focus-within > .icon, .board-search:focus-within > .icon { color: var(--accent); }
+.global-search input:focus, .board-search input:focus { outline: none; }
 .filter-select { height: 33px; border: 1px solid var(--border); border-radius: 6px; color: var(--muted); background: var(--surface-muted); padding: 0 28px 0 10px; font-size: 9px; max-width: 175px; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23a1b0be' stroke-width='1.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 9px center; }
 .filter-select:focus { border-color: var(--accent); }
 .toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 7px; }
@@ -313,14 +314,14 @@ h1 { font-size: 27px; font-weight: 800; letter-spacing: -.9px; }
 .deadline-title { font-size: 10px; font-weight: 550; display: block; }
 .deadline-project { font-size: 9px; color: var(--muted); margin-top: 5px; display: block; }
 .deadline-item .priority { margin-left: auto; }
-.distribution { display: grid; place-items: center; padding: 15px 0 20px; }
-.donut { width: 135px; height: 135px; border-radius: 50%; display: grid; place-items: center; }
-.donut-center { background: var(--surface); border-radius: 50%; width: 103px; height: 103px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.donut-center strong { font: 750 28px 'Manrope', sans-serif; letter-spacing: -1px; }
-.donut-center span { font-size: 9px; color: var(--muted); margin-top: 3px; }
-.legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 13px; font-size: 8px; color: var(--muted); }
-.legend span { display: inline-flex; align-items: center; gap: 5px; }
-.legend i { width: 6px; height: 6px; border-radius: 50%; background: var(--legend-color); }
+.distribution { display: grid; place-items: center; padding: 12px 0 22px; }
+.donut { width: min(240px, 100%); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; }
+.donut-center { background: var(--surface); border-radius: 50%; width: 78%; height: 78%; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.donut-center strong { font: 750 42px 'Manrope', sans-serif; letter-spacing: -1px; line-height: 1.2; }
+.donut-center span { display: block; width: 100%; max-width: 130px; font-size: 14px; line-height: 1.4; color: var(--muted); margin-top: 6px; text-align: center; text-wrap: balance; }
+.legend { display: flex; justify-content: center; flex-wrap: wrap; gap: 12px 20px; font-size: 14px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 7px; }
+.legend i { width: 9px; height: 9px; flex-shrink: 0; border-radius: 50%; background: var(--legend-color); }
 
 /* Lista e calendário */
 .table-scroll { overflow: auto; }
@@ -547,7 +548,7 @@ h1 { font-size: 27px; font-weight: 800; letter-spacing: -.9px; }
 .task-table td.is-overdue { color: var(--danger); }
 
 /* Leitura confortável para textos auxiliares e controles compactos. */
-.workspace-card div > span, .sidebar-help, .profile strong,
+.sidebar-help, .profile strong,
 .breadcrumb, .breadcrumb strong, .global-search input, .date-label, .stat-bottom,
 .project-subtitle, .board-tab, .board-search input, .filter-select, .filter-toggle,
 .filter-summary, .expanded-filters label, .expanded-filters input[type='date'],
@@ -555,7 +556,7 @@ h1 { font-size: 27px; font-weight: 800; letter-spacing: -.9px; }
 .priority, .column-add, .empty-column, .board-bottom,
 .project-card p, .project-progress-label, .project-card-footer > span,
 .project-card-footer .text-button, .new-project-card span, .deadline-title,
-.deadline-project, .donut-center span, .legend, .task-table, .task-table th,
+.deadline-project, .task-table, .task-table th,
 .task-table .task-name-button, .status-select, .calendar-weekdays,
 .calendar-day-number, .calendar-task, .field, .form-note, .color-field legend,
 .help-steps li, .info-note, .comment-item strong, .comment-item p,
