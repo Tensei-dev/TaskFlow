@@ -174,6 +174,12 @@ async function filtrarTarefas(filtros = {}) {
   const { nome, prioridade, status, prazoDe, prazoAte, projeto } = filtros;
   const consulta = {};
 
+  for (const [campo, valor] of Object.entries({ nome, prioridade, status, prazoDe, prazoAte, projeto })) {
+    if (valor !== undefined && typeof valor !== "string") {
+      throw new ErroApp(`O filtro ${campo} deve ser informado uma única vez como texto`, 400);
+    }
+  }
+
   //NOTE: Filtro por nome, busca parte do título ignorando maiúsculas e minúsculas
   if (nome && nome.trim()) {
     consulta.titulo = { $regex: escaparRegex(nome.trim()), $options: "i" };
@@ -233,6 +239,15 @@ async function filtrarTarefas(filtros = {}) {
 //NOTE: Retorna o Dashboard resumo das tarefas, com filtro só para aquele projeto, sem filtro para todos os projetos
 async function obterDashboard(projetoId) {
   const filtro = {};
+  // Os prazos enviados pelo frontend são datas sem horário, armazenadas em UTC.
+  // Uma tarefa só está atrasada quando seu dia de prazo já passou em São Paulo.
+  const hoje = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  const inicioDoDia = new Date(`${hoje}T00:00:00.000Z`);
   if (projetoId) {
     validarId(projetoId, "ID do projeto");
     filtro.projeto = new mongoose.Types.ObjectId(projetoId);
@@ -254,7 +269,7 @@ async function obterDashboard(projetoId) {
   const atrasadas = await Tarefa.countDocuments({
     ...filtro,
     status: { $ne: "concluido" },
-    prazo: { $lt: new Date() },
+    prazo: { $lt: inicioDoDia },
   });
 
   return {

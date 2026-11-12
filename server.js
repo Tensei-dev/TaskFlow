@@ -84,7 +84,7 @@ app.put("/api/tarefas/:id", asyncRoute(async (req, res) => {
 }));
 
 app.patch("/api/tarefas/:id/status", asyncRoute(async (req, res) => {
-  res.json(await service.alterarStatus(req.params.id, req.body.status));
+  res.json(await service.alterarStatus(req.params.id, req.body?.status));
 }));
 
 app.delete("/api/tarefas/:id", asyncRoute(async (req, res) => {
@@ -100,7 +100,8 @@ app.use("/api", (_req, res) => {
 });
 
 app.use((err, _req, res, _next) => {
-  const status = err.status || (err.name === "ValidationError" ? 400 : 500);
+  const invalidInput = ["ValidationError", "CastError"].includes(err.name);
+  const status = err.status || (invalidInput ? 400 : 500);
   if (status >= 500) console.error(err);
   res.status(status).json({ erro: err.message || "Erro interno do servidor" });
 });
