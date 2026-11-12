@@ -104,6 +104,122 @@ function persist() {
   }
 }
 
+const API_STATUS = { todo: 'a_fazer', progress: 'em_andamento', done: 'concluido' };
+const UI_STATUS = { a_fazer: 'todo', em_andamento: 'progress', concluido: 'done' };
+let apiEnabled = false;
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(`/api${path}`, {
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+    ...options,
+  });
+  const body = response.status === 204 ? null : await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body?.erro || `Erro HTTP ${response.status}`);
+  return body;
+}
+
+const mongoId = (value) => /^[a-f\d]{24}$/i.test(String(value));
+const dateOnly = (value) => value ? String(value).slice(0, 10) : '';
+const projectFromApi = (project) => ({
+  id: project._id,
+  name: project.nome,
+  description: project.descricao || '',
+  color: project.cor || 'purple',
+  createdAt: dateOnly(project.createdAt) || today(),
+});
+const taskFromApi = (task) => ({
+  id: task._id,
+  projectId: task.projeto?._id || task.projeto,
+  title: task.titulo,
+  description: task.descricao || '',
+  priority: task.prioridade || 'media',
+  status: UI_STATUS[task.status] || 'todo',
+  due: dateOnly(task.prazo),
+  assignee: task.responsavelNome || '',
+  category: task.categoria || 'Tarefa',
+  cover: Boolean(task.destaque),
+  comments: (task.comentarios || []).map((comment) => ({
+    id: comment._id || makeId(), author: comment.autorNome || 'Você', text: comment.texto, createdAt: comment.data,
+  })),
+  createdAt: task.createdAt,
+});
+const projectToApi = (project) => ({ nome: project.name, descricao: project.description, cor: project.color });
+const taskToApi = (task) => ({
+  titulo: task.title,
+  descricao: task.description,
+  prioridade: task.priority,
+  status: API_STATUS[task.status],
+  prazo: task.due || null,
+  projeto: task.projectId,
+  responsavelNome: task.assignee,
+  categoria: task.category || 'Tarefa',
+  destaque: Boolean(task.cover),
+  comentarios: task.comments.map((comment) => ({ autorNome: comment.author, texto: comment.text, data: comment.createdAt })),
+});
+
+async function syncProject(project) {
+  if (!apiEnabled) return project;
+  const saved = mongoId(project.id)
+    ? await apiRequest(`/projetos/${project.id}`, { method: 'PUT', body: JSON.stringify(projectToApi(project)) })
+    : await apiRequest('/projetos', { method: 'POST', body: JSON.stringify(projectToApi(project)) });
+  return projectFromApi(saved);
+}
+
+async function syncTask(task, statusOnly = false) {
+  if (!apiEnabled) return task;
+  const saved = mongoId(task.id)
+    ? await apiRequest(`/tarefas/${task.id}${statusOnly ? '/status' : ''}`, {
+      method: statusOnly ? 'PATCH' : 'PUT',
+      body: JSON.stringify(statusOnly ? { status: API_STATUS[task.status] } : taskToApi(task)),
+    })
+    : await apiRequest('/tarefas', { method: 'POST', body: JSON.stringify(taskToApi(task)) });
+  return taskFromApi(saved);
+}
+
+async function seedApi(source) {
+  const projectIds = new Map();
+  const projects = [];
+  for (const project of source.projects) {
+    const saved = projectFromApi(await apiRequest('/projetos', { method: 'POST', body: JSON.stringify(projectToApi(project)) }));
+    projectIds.set(project.id, saved.id);
+    projects.push(saved);
+  }
+  const tasks = [];
+  for (const task of source.tasks) {
+    const candidate = { ...task, projectId: projectIds.get(task.projectId) };
+    tasks.push(taskFromApi(await apiRequest('/tarefas', { method: 'POST', body: JSON.stringify(taskToApi(candidate)) })));
+  }
+  return { version: 1, projects, tasks };
+}
+
+async function hydrateFromApi() {
+  try {
+    const health = await apiRequest('');
+    if (health.database !== 'connected') return;
+    apiEnabled = true;
+    const [projects, tasks] = await Promise.all([apiRequest('/projetos'), apiRequest('/tarefas')]);
+    data = projects.length
+      ? { version: 1, projects: projects.map(projectFromApi), tasks: tasks.map(taskFromApi) }
+      : await seedApi(data);
+    state.projectId = data.projects[0]?.id || 'all';
+    persist();
+    render();
+    toast('Dados sincronizados com o MongoDB.');
+  } catch (error) {
+    apiEnabled = false;
+    toast(`Modo local: ${error.message}`, true);
+  }
+}
+
+async function safelySync(operation) {
+  try {
+    return await operation();
+  } catch (error) {
+    toast(`Alteração salva localmente. API: ${error.message}`, true);
+    return null;
+  }
+}
+
 function toast(message, error = false) {
   const element = document.createElement('div');
   element.className = `toast${error ? ' error' : ''}`;
@@ -332,12 +448,13 @@ function moveTask(id, status) {
   task.status = status;
   persist();
   render();
+  safelySync(() => syncTask(task, true));
   toast(`Tarefa movida para ${STATUSES[status].toLowerCase()}.`);
 }
 
 function showHelp() {
   $('#info-title').textContent = 'Seu primeiro passo no TaskFlow';
-  $('#info-content').innerHTML = '<ol class="help-steps"><li><strong>Dê um lugar às suas ideias</strong>Crie um projeto e escolha uma cor para identificar seu espaço.</li><li><strong>Transforme planos em tarefas</strong>Defina um título, um prazo e uma prioridade. Você também pode indicar o responsável.</li><li><strong>Faça o trabalho fluir</strong>Arraste os cartões entre as colunas ou abra uma tarefa para mudar o status. No celular, use o formulário ou a visualização em lista.</li><li><strong>Encontre o que importa</strong>Pesquise por nome, filtre por prioridade, status ou prazo e acompanhe os resultados no dashboard.</li></ol><p class="info-note">Este é um protótipo de frontend com dados de exemplo. As informações ficam neste navegador. Autenticação, colaboração entre usuários e integração com o MongoDB ficam para a próxima etapa.</p>';
+  $('#info-content').innerHTML = '<ol class="help-steps"><li><strong>Dê um lugar às suas ideias</strong>Crie um projeto e escolha uma cor para identificar seu espaço.</li><li><strong>Transforme planos em tarefas</strong>Defina um título, um prazo e uma prioridade. Você também pode indicar o responsável.</li><li><strong>Faça o trabalho fluir</strong>Arraste os cartões entre as colunas ou abra uma tarefa para mudar o status. No celular, use o formulário ou a visualização em lista.</li><li><strong>Encontre o que importa</strong>Pesquise por nome, filtre por prioridade, status ou prazo e acompanhe os resultados no dashboard.</li></ol><p class="info-note">Com o servidor e o MongoDB configurados, as alterações são sincronizadas pela API. Sem conexão com o banco, o TaskFlow continua funcionando localmente neste navegador.</p>';
   $('#info-dialog').showModal();
 }
 
@@ -391,6 +508,7 @@ document.addEventListener('click', (event) => {
         if (!task) break;
         task.comments.push({ id: makeId(), author: 'Você', text, createdAt: new Date().toISOString() });
         persist();
+        safelySync(() => syncTask(task));
         $('#comments-list').innerHTML = commentsMarkup(task);
         $('.comments-section .category').textContent = task.comments.length;
         input.value = '';
@@ -441,7 +559,7 @@ document.addEventListener('change', (event) => {
   if (target.dataset.taskStatus) moveTask(target.dataset.taskStatus, target.value);
 });
 
-$('#task-form').addEventListener('submit', (event) => {
+$('#task-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const form = event.currentTarget;
   const fields = form.elements;
@@ -453,25 +571,40 @@ $('#task-form').addEventListener('submit', (event) => {
   else data.tasks.push({ ...values, id: makeId(), category: 'Tarefa', comments: [], createdAt: new Date().toISOString() });
   if (state.projectId !== 'all' && state.projectId !== values.projectId) state.projectId = values.projectId;
   persist();
+  const saved = await safelySync(() => syncTask(existing || data.tasks.at(-1)));
+  if (saved) {
+    const target = existing || data.tasks.at(-1);
+    Object.assign(target, saved);
+    persist();
+  }
   $('#task-dialog').close();
   render();
   toast(existing ? 'Tarefa atualizada. Cada detalhe conta!' : 'Nova tarefa criada. Vamos fazer acontecer!');
 });
 
-$('#project-form').addEventListener('submit', (event) => {
+$('#project-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const fields = event.currentTarget.elements;
   if (!fields.name.value.trim()) { fields.name.setCustomValidity('Dê um nome para o projeto.'); fields.name.reportValidity(); return; }
   const existing = getProject(fields.id.value);
   const values = { name: fields.name.value.trim(), description: fields.description.value.trim(), color: fields.color.value };
+  let project = existing;
   if (existing) Object.assign(existing, values);
   else {
-    const project = { ...values, id: makeId(), createdAt: today() };
+    project = { ...values, id: makeId(), createdAt: today() };
     data.projects.push(project);
     state.projectId = project.id;
     Object.assign(state, { query: '', priority: '', status: '', dateFrom: '', dateTo: '', overdue: false });
   }
   persist();
+  const previousId = project.id;
+  const saved = await safelySync(() => syncProject(project));
+  if (saved) {
+    Object.assign(project, saved);
+    data.tasks.forEach((task) => { if (task.projectId === previousId) task.projectId = saved.id; });
+    if (state.projectId === previousId) state.projectId = saved.id;
+    persist();
+  }
   $('#project-dialog').close();
   if (!existing) navigate('quadro');
   render();
@@ -482,10 +615,13 @@ $('#project-form').addEventListener('submit', (event) => {
 [$('#task-form').elements.title, $('#project-form').elements.name].forEach((field) => field.addEventListener('input', () => field.setCustomValidity('')));
 $('#delete-task').addEventListener('click', () => showConfirm('task', $('#task-form').elements.id.value));
 $('#delete-project').addEventListener('click', () => showConfirm('project', $('#project-form').elements.id.value));
-$('#confirm-form').addEventListener('submit', (event) => {
+$('#confirm-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   if (!pendingDelete) return;
   const { type, id } = pendingDelete;
+  if (apiEnabled && mongoId(id)) {
+    await safelySync(() => apiRequest(`/${type === 'task' ? 'tarefas' : 'projetos'}/${id}`, { method: 'DELETE' }));
+  }
   if (type === 'task') {
     data.tasks = data.tasks.filter((task) => task.id !== id);
     $('#task-dialog').close();
@@ -580,3 +716,4 @@ window.addEventListener('storage', (event) => {
 render();
 syncSidebarAccessibility();
 if (storageWarning) toast(storageWarning, true);
+hydrateFromApi();
