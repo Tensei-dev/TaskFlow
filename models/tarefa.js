@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const comentarioSchema = new mongoose.Schema(
   {
     autor: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario" },
+    autorNome: { type: String, trim: true, default: "Você" },
     texto: { type: String, required: true, trim: true },
     data: { type: Date, default: Date.now },
   },
@@ -41,6 +42,9 @@ const tarefaSchema = new mongoose.Schema(
     },
     // Extras
     responsavel: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario" },
+    responsavelNome: { type: String, trim: true, default: "" },
+    categoria: { type: String, trim: true, default: "Tarefa" },
+    destaque: { type: Boolean, default: false },
     comentarios: [comentarioSchema],
   },
   { timestamps: true },
