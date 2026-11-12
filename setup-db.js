@@ -1,12 +1,15 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 
-const Projeto = require("./models/Projeto");
-const Tarefa = require("./models/Tarefa");
-const Usuario = require("./models/Usuario");
+const Projeto = require("./models/projeto");
+const Tarefa = require("./models/tarefa");
+const Usuario = require("./models/usuario");
 
 async function setup_db() {
   try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error("Defina MONGODB_URI no arquivo .env antes de preparar o banco");
+    }
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("Conectado ao MongoDB Atlas");
 

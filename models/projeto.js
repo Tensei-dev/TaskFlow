@@ -12,6 +12,11 @@ const projetoSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    cor: {
+      type: String,
+      enum: ["purple", "blue", "orange", "green", "pink"],
+      default: "purple",
+    },
     gestor: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario" },
     usuarios: [{ type: mongoose.Schema.Types.ObjectId, ref: "Usuario" }],
   },
