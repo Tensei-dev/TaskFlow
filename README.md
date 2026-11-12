@@ -50,7 +50,11 @@ npm install
 npm start
 ```
 
-Acesse **http://localhost:3000**. O frontend funciona sem conexão com o MongoDB. Para usar o banco, crie um arquivo `.env`:
+Acesse **http://localhost:3000**. O frontend funciona sem conexão com o MongoDB.
+
+Para avaliar apenas esta entrega de frontend, também é possível abrir `public/index.html` diretamente no navegador, sem instalar dependências.
+
+Para usar o banco, copie `.env.example` para `.env` e substitua os valores de exemplo:
 
 ```dotenv
 MONGODB_URI="mongodb+srv://USUARIO:SENHA@CLUSTER.mongodb.net/gerenciador_tarefas?retryWrites=true&w=majority"

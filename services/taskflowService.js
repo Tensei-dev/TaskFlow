@@ -1,8 +1,8 @@
 //NOTE: Funções que executam as operações do TaskFlow direto no banco (MongoDB). As rotas do Express devem apenas chamar estas funções.
 
 const mongoose = require("mongoose");
-const Projeto = require("../models/Projeto");
-const Tarefa = require("../models/Tarefa");
+const Projeto = require("../models/projeto");
+const Tarefa = require("../models/tarefa");
 
 const STATUS = ["a_fazer", "em_andamento", "concluido"];
 const PRIORIDADES = ["baixa", "media", "alta"];
