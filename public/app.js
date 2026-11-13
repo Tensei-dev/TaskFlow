@@ -311,7 +311,7 @@ function renderBoard() {
     <div class="board-toolbar"><label class="board-search">${icon('search')}<input type="search" id="board-search" value="${escapeHTML(state.query)}" placeholder="Buscar tarefa..." aria-label="Buscar tarefa no quadro"></label><select class="filter-select project-filter" id="project-filter" aria-label="Filtrar por projeto">${projectOptions()}</select><select class="filter-select priority-filter" id="priority-filter" aria-label="Filtrar por prioridade"><option value="">Prioridade</option>${Object.entries(PRIORITIES).map(([value, name]) => `<option value="${value}"${state.priority === value ? ' selected' : ''}>${name}</option>`).join('')}</select><div class="toolbar-right"><span class="filter-summary" id="filter-summary">${tasks.length} tarefa${tasks.length !== 1 ? 's' : ''}</span><button type="button" class="button button-secondary filter-toggle${activeFilters || state.filtersOpen ? ' is-active' : ''}" data-action="toggle-filters" aria-expanded="${state.filtersOpen}" aria-controls="expanded-filters">${icon('filter')}Filtros${activeFilters ? ' •' : ''}</button></div></div>
     <div class="expanded-filters" id="expanded-filters"${state.filtersOpen ? '' : ' hidden'}><label>Status<select class="filter-select" id="status-filter"><option value="">Todos os status</option>${Object.entries(STATUSES).map(([value, name]) => `<option value="${value}"${state.status === value ? ' selected' : ''}>${name}</option>`).join('')}</select></label><label>Prazo a partir de<input type="date" id="date-from-filter" value="${state.dateFrom}" min="2000-01-01" max="2100-12-31"></label><label>Até<input type="date" id="date-to-filter" value="${state.dateTo}" min="2000-01-01" max="2100-12-31"></label><label><span>Acompanhamento</span><select class="filter-select" id="overdue-filter"><option value="">Todos os prazos</option><option value="overdue"${state.overdue ? ' selected' : ''}>Somente atrasadas</option></select></label><button class="text-button" type="button" data-action="clear-filters">Limpar filtros</button></div>
     <div id="board-content" role="tabpanel" aria-labelledby="${state.layout === 'kanban' ? 'kanban-tab' : 'list-tab'}">${data.projects.length ? boardContent(tasks) : noProjectsMarkup()}</div>
-    <div class="board-bottom"><span>${icon('check-circle')}Alterações salvas neste navegador</span><span class="drag-hint">Arraste os cartões para atualizar o status ${icon('arrow')}</span></div></section>`;
+    <div class="board-bottom"><span class="drag-hint">Arraste os cartões para atualizar o status ${icon('arrow')}</span></div></section>`;
 }
 
 function boardContent(tasks) { return state.layout === 'kanban' ? kanbanMarkup(tasks) : listMarkup(tasks); }
@@ -554,13 +554,27 @@ document.addEventListener('change', (event) => {
   const target = event.target;
   const filters = { 'project-filter': 'projectId', 'priority-filter': 'priority', 'status-filter': 'status', 'date-from-filter': 'dateFrom', 'date-to-filter': 'dateTo' };
   if (Object.hasOwn(filters, target.id)) {
+    const isDateFilter = target.id === 'date-from-filter' || target.id === 'date-to-filter';
+    // Ao digitar uma data, o navegador pode emitir mudanças antes de o ano estar completo.
+    if (isDateFilter && !target.validity.valid) return;
     state[filters[target.id]] = target.value;
     if (state.dateFrom && state.dateTo && state.dateFrom > state.dateTo) {
       if (target.id === 'date-from-filter') state.dateTo = state.dateFrom; else state.dateFrom = state.dateTo;
       toast('Ajustamos o intervalo para manter o prazo inicial antes do final.');
     }
-    render();
-    document.getElementById(target.id)?.focus();
+    if (isDateFilter) {
+      const other = target.id === 'date-from-filter' ? $('#date-to-filter') : $('#date-from-filter');
+      const otherValue = target.id === 'date-from-filter' ? state.dateTo : state.dateFrom;
+      if (other.value !== otherValue) other.value = otherValue;
+      refreshBoardContent();
+      const toggle = $('[data-action="toggle-filters"]');
+      const active = Boolean(state.priority || state.status || state.dateFrom || state.dateTo || state.overdue);
+      toggle.classList.toggle('is-active', active || state.filtersOpen);
+      toggle.innerHTML = `${icon('filter')}Filtros${active ? ' •' : ''}`;
+    } else {
+      render();
+      document.getElementById(target.id)?.focus();
+    }
   }
   if (target.id === 'overdue-filter') { state.overdue = Boolean(target.value); render(); $('#overdue-filter').focus(); }
   if (target.dataset.taskStatus) moveTask(target.dataset.taskStatus, target.value);
