@@ -554,13 +554,27 @@ document.addEventListener('change', (event) => {
   const target = event.target;
   const filters = { 'project-filter': 'projectId', 'priority-filter': 'priority', 'status-filter': 'status', 'date-from-filter': 'dateFrom', 'date-to-filter': 'dateTo' };
   if (Object.hasOwn(filters, target.id)) {
+    const isDateFilter = target.id === 'date-from-filter' || target.id === 'date-to-filter';
+    // Ao digitar uma data, o navegador pode emitir mudanças antes de o ano estar completo.
+    if (isDateFilter && !target.validity.valid) return;
     state[filters[target.id]] = target.value;
     if (state.dateFrom && state.dateTo && state.dateFrom > state.dateTo) {
       if (target.id === 'date-from-filter') state.dateTo = state.dateFrom; else state.dateFrom = state.dateTo;
       toast('Ajustamos o intervalo para manter o prazo inicial antes do final.');
     }
-    render();
-    document.getElementById(target.id)?.focus();
+    if (isDateFilter) {
+      const other = target.id === 'date-from-filter' ? $('#date-to-filter') : $('#date-from-filter');
+      const otherValue = target.id === 'date-from-filter' ? state.dateTo : state.dateFrom;
+      if (other.value !== otherValue) other.value = otherValue;
+      refreshBoardContent();
+      const toggle = $('[data-action="toggle-filters"]');
+      const active = Boolean(state.priority || state.status || state.dateFrom || state.dateTo || state.overdue);
+      toggle.classList.toggle('is-active', active || state.filtersOpen);
+      toggle.innerHTML = `${icon('filter')}Filtros${active ? ' •' : ''}`;
+    } else {
+      render();
+      document.getElementById(target.id)?.focus();
+    }
   }
   if (target.id === 'overdue-filter') { state.overdue = Boolean(target.value); render(); $('#overdue-filter').focus(); }
   if (target.dataset.taskStatus) moveTask(target.dataset.taskStatus, target.value);
